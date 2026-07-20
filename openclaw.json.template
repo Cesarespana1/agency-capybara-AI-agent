@@ -1,0 +1,108 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "models": {
+        "anthropic/claude-opus-4-7": {}
+      },
+      "model": {
+        "primary": "anthropic/claude-opus-4-7"
+      }
+    },
+    "list": [
+      { "id": "main" },
+      {
+        "id": "delegate",
+        "name": "delegate",
+        "workspace": "~/.openclaw/workspace/delegate",
+        "agentDir": "~/.openclaw/agents/delegate/agent",
+        "model": { "primary": "anthropic/claude-opus-4-7" },
+        "tools": {
+          "allow": ["read", "exec", "message", "cron"],
+          "deny": ["write", "edit", "apply_patch", "browser", "canvas"]
+        },
+        "sandbox": {
+          "mode": "all",
+          "scope": "agent",
+          "workspaceAccess": "rw",
+          "docker": {
+            "image": "openclaw-sandbox:gog",
+            "env": {
+              "GOG_CONFIG_DIR": "/workspace/.gog",
+              "GOG_KEYRING_PASSWORD": "$secret:env:default:GOG_KEYRING_PASSWORD",
+              "GOG_STATE_DIR": "/workspace/.gog/state"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "gateway": {
+    "mode": "local",
+    "auth": {
+      "mode": "token",
+      "token": "$secret:env:default:OPENCLAW_GATEWAY_TOKEN"
+    },
+    "port": 18789,
+    "bind": "loopback"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "botToken": "$secret:env:default:TELEGRAM_BOT_TOKEN",
+      "groups": {
+        "*": { "requireMention": true }
+      }
+    },
+    "whatsapp": {
+      "enabled": false,
+      "dmPolicy": "open",
+      "allowFrom": ["*"]
+    }
+  },
+  "hooks": {
+    "enabled": true,
+    "path": "/hooks",
+    "token": "$secret:env:default:OPENCLAW_GATEWAY_TOKEN",
+    "allowedSessionKeyPrefixes": ["hook:"],
+    "allowedAgentIds": ["delegate"],
+    "allowRequestSessionKey": true,
+    "presets": ["gmail"],
+    "mappings": [
+      {
+        "match": { "path": "gmail" },
+        "action": "agent",
+        "agentId": "delegate",
+        "wakeMode": "now",
+        "name": "Gmail",
+        "sessionKey": "hook:gmail:{{messages[0].id}}",
+        "messageTemplate": "New email from {{messages[0].from}}\nSubject: {{messages[0].subject}}\n{{messages[0].snippet}}",
+        "deliver": true,
+        "channel": "telegram",
+        "to": "YOUR_TELEGRAM_CHAT_ID"
+      }
+    ],
+    "gmail": {
+      "account": "your-email@yourdomain.com",
+      "label": "INBOX",
+      "topic": "projects/YOUR_GCP_PROJECT/topics/gog-gmail-watch",
+      "subscription": "gog-gmail-watch-push",
+      "hookUrl": "http://127.0.0.1:18789/hooks/gmail",
+      "includeBody": true,
+      "maxBytes": 20000,
+      "renewEveryMinutes": 720,
+      "tailscale": {
+        "mode": "funnel",
+        "path": "/gmail-pubsub"
+      }
+    }
+  },
+  "logging": {
+    "level": "info",
+    "consoleLevel": "info",
+    "redactSensitive": "tools"
+  },
+  "session": {
+    "dmScope": "per-channel-peer"
+  }
+}
