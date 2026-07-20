@@ -37,15 +37,18 @@ Auto-reply + Telegram notify
 - Agent never impersonates owner or reveals internal architecture to clients
 
 ## Project structure
+
+```
 agency-capybara-ai-agent/
 ├── workspace/
 │   └── delegate/
-│       ├── SOUL.md          # Non-negotiable security rules
-│       ├── AGENTS.md        # Agent behavior and inbox program
-│       └── USER.md          # Business info template
-├── openclaw.json.template   # Config template (no real values)
+│       ├── SOUL.md              # Non-negotiable security rules
+│       ├── AGENTS.md            # Agent behavior and inbox program
+│       └── USER.md              # Business info template
+├── openclaw.json.template       # Config template (no real values)
 ├── .gitignore
 └── README.md
+```
 
 ## Setup overview
 
